@@ -35,6 +35,8 @@ print(f"\nBooks in {library.name}:")
 for book in library.books.all():
     print(f"- {book.title}")
 
+library_name = "Central Library"
+library = Library.objects.get(name=library_name)
 # --------------------------
 # OneToOne: Librarian -> Library
 # --------------------------
