@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import user_passes_test, permission_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .models import Book, Library
-from .forms import BookForm  # Make sure this exists
+from .forms import BookForm  # Ensure this file exists
 
 # -----------------------------------------
 # Helper functions to check roles
