@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test, permission_required
+from django.contrib.auth.decorators import user_passes_test, permission_required  # ✅ include permission_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .models import Book, Library
-from .forms import BookForm  # Ensure this file exists
+from .forms import BookForm  # Make sure this exists
 
 # -----------------------------------------
 # Helper functions to check roles
