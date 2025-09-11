@@ -9,7 +9,7 @@ from .models import Book, Library
 # Function-based view: List all books
 def list_books(request):
     books = Book.objects.all()
-    return render(request, 'list_books.html', {'books': books})
+    return render(request, 'relationship_app/list_books.html', {'books': books})
 
 # Class-based view: Display details of a specific library
 class LibraryDetailView(DetailView):
