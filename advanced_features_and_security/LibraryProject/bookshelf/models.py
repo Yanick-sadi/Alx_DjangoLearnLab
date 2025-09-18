@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
+
 # ----------------------------
 # Custom User Manager
 # ----------------------------
@@ -25,6 +26,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(username, email, password, **extra_fields)
 
+
 # ----------------------------
 # Custom User Model
 # ----------------------------
@@ -37,8 +39,9 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+
 # ----------------------------
-# Book Model
+# Book Model with Custom Permissions
 # ----------------------------
 class Book(models.Model):
     title = models.CharField(max_length=200)
@@ -47,3 +50,11 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.author} ({self.publication_year})"
+
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
+        ]
