@@ -1,51 +1,52 @@
+# bookshelf/views.py
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import permission_required
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required
 from .models import Book
-from .forms import BookForm  # Make sure you create this form in bookshelf/forms.py
+
+# List all books (requires login)
+@login_required
+def book_list(request):
+    books = Book.objects.all()
+    return render(request, "bookshelf/book_list.html", {"books": books})
 
 
-# ----------------------------
-# Book Views with Permissions
-# ----------------------------
-@permission_required('bookshelf.can_create', raise_exception=True)
-def add_book(request):
+# View details of a single book
+@login_required
+def book_detail(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    return render(request, "bookshelf/book_detail.html", {"book": book})
+
+
+# Add a new book (requires add permission)
+@permission_required("bookshelf.add_book")
+def book_create(request):
     if request.method == "POST":
-        form = BookForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Book created successfully!")
-            return redirect('list_books')
-    else:
-        form = BookForm()
-    return render(request, 'bookshelf/add_book.html', {'form': form})
+        title = request.POST.get("title")
+        author = request.POST.get("author")
+        description = request.POST.get("description")
+        Book.objects.create(title=title, author=author, description=description)
+        return redirect("book_list")
+    return render(request, "bookshelf/book_form.html")
 
 
-@permission_required('bookshelf.can_edit', raise_exception=True)
-def edit_book(request, pk):
+# Edit a book (requires change permission)
+@permission_required("bookshelf.change_book")
+def book_update(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
-        form = BookForm(request.POST, instance=book)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Book updated successfully!")
-            return redirect('list_books')
-    else:
-        form = BookForm(instance=book)
-    return render(request, 'bookshelf/edit_book.html', {'form': form, 'book': book})
+        book.title = request.POST.get("title")
+        book.author = request.POST.get("author")
+        book.description = request.POST.get("description")
+        book.save()
+        return redirect("book_list")
+    return render(request, "bookshelf/book_form.html", {"book": book})
 
 
-@permission_required('bookshelf.can_delete', raise_exception=True)
-def delete_book(request, pk):
+# Delete a book (requires delete permission)
+@permission_required("bookshelf.delete_book")
+def book_delete(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
         book.delete()
-        messages.success(request, "Book deleted successfully!")
-        return redirect('list_books')
-    return render(request, 'bookshelf/delete_book.html', {'book': book})
-
-
-@permission_required('bookshelf.can_view', raise_exception=True)
-def list_books(request):
-    books = Book.objects.all()
-    return render(request, 'bookshelf/list_books.html', {'books': books})
+        return redirect("book_list")
+    return render(request, "bookshelf/book_confirm_delete.html", {"book": book})
