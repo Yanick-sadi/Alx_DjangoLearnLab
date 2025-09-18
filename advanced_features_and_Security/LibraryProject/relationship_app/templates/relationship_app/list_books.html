@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List of Books</title>
+</head>
+<body>
+    <h1>Books Available:</h1>
+    {% for book in books %}
+        {{ book.title }} by {{ book.author.name }}<br>
+    {% empty %}
+        No books available.
+    {% endfor %}
+</body>
+</html>
