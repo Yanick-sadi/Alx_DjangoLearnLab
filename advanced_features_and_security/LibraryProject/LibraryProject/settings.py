@@ -125,7 +125,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Use custom user model
-AUTH_USER_MODEL = "accounts.CustomUser"
+AUTH_USER_MODEL = "bookshelf.CustomUser"
 
 # Media settings for profile photos
 MEDIA_URL = "/media/"
