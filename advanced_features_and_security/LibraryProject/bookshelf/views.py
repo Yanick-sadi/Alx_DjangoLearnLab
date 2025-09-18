@@ -3,7 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import permission_required, login_required
 from django.views.decorators.csrf import csrf_protect
 from .models import Book
-from .forms import BookForm, ExampleForm
+from .forms import BookForm
+from .forms import ExampleForm
 
 # ✅ Book list view with permission check
 @login_required
