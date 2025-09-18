@@ -18,7 +18,7 @@ def book_detail(request, pk):
 
 
 # Add a new book (requires add permission)
-@permission_required("bookshelf.add_book")
+@permission_required("bookshelf.add_book", raise_exception=True)
 def book_create(request):
     if request.method == "POST":
         title = request.POST.get("title")
@@ -30,7 +30,7 @@ def book_create(request):
 
 
 # Edit a book (requires change permission)
-@permission_required("bookshelf.change_book")
+@permission_required("bookshelf.change_book", raise_exception=True)
 def book_update(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
@@ -43,7 +43,7 @@ def book_update(request, pk):
 
 
 # Delete a book (requires delete permission)
-@permission_required("bookshelf.delete_book")
+@permission_required("bookshelf.delete_book", raise_exception=True)
 def book_delete(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
