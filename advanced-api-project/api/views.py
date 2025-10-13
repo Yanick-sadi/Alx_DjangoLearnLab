@@ -1,15 +1,21 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework  # Correct import for Django Filter
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters import FilterSet, CharFilter, NumberFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
+# =============================================================================
+# CUSTOM FILTER SETS FOR ADVANCED FILTERING
+# =============================================================================
 
 class BookFilter(FilterSet):
-
+    """
+    Custom filter set for Book model to enable advanced filtering capabilities.
+    Provides precise control over how books can be filtered via query parameters.
+    """
     title = CharFilter(field_name='title', lookup_expr='icontains', 
                       help_text="Filter books by title (case-insensitive contains)")
     
@@ -33,18 +39,46 @@ class BookFilter(FilterSet):
             'publication_year': ['exact', 'gte', 'lte'],
         }
 
+# =============================================================================
+# ENHANCED BOOK VIEWS WITH FILTERING, SEARCHING, AND ORDERING
+# =============================================================================
 
 class BookListView(generics.ListAPIView):
-   
+    """
+    Enhanced ListView for retrieving all books with comprehensive filtering, 
+    searching, and ordering capabilities.
+    
+    Features:
+    - Filtering: Filter by title, author name, publication year (exact, range)
+    - Searching: Full-text search on title and author name fields
+    - Ordering: Sort by any book field with ascending/descending order
+    
+    Example Usage:
+    - Filter: /api/books/?title=harry&author_name=rowling&publication_year_min=1990
+    - Search: /api/books/?search=magic
+    - Order: /api/books/?ordering=title,-publication_year
+    
+    Permissions: Read access for all users, write access for authenticated users only.
+    """
     queryset = Book.objects.all().select_related('author')
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    # =========================================================================
+    # FILTERING CONFIGURATION
+    # =========================================================================
+    filter_backends = [
+        rest_framework.DjangoFilterBackend,  # Use the correct import path
+        SearchFilter, 
+        OrderingFilter
+    ]
     
     # Django Filter configuration
     filterset_class = BookFilter
     
+    # =========================================================================
+    # SEARCH CONFIGURATION
+    # =========================================================================
     search_fields = [
         'title',           # Search in book titles
         'author__name',    # Search in author names
@@ -52,6 +86,9 @@ class BookListView(generics.ListAPIView):
         '=author__name',   # Exact match search for author name
     ]
     
+    # =========================================================================
+    # ORDERING CONFIGURATION
+    # =========================================================================
     ordering_fields = [
         'title',              # Order by book title
         'publication_year',   # Order by publication year
@@ -192,6 +229,9 @@ class BookDeleteView(generics.DestroyAPIView):
         }, status=status.HTTP_200_OK)
 
 
+# =============================================================================
+# ENHANCED AUTHOR VIEWS (Optional - for completeness)
+# =============================================================================
 
 class AuthorListView(generics.ListAPIView):
     """
