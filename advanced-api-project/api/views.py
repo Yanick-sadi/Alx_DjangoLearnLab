@@ -1,15 +1,12 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from django_filters import rest_framework  # Correct import for Django Filter
-from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters import rest_framework
+from rest_framework.filters import SearchFilter, OrderingFilter  # Explicit imports for both filters
 from django_filters import FilterSet, CharFilter, NumberFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
-# =============================================================================
-# CUSTOM FILTER SETS FOR ADVANCED FILTERING
-# =============================================================================
 
 class BookFilter(FilterSet):
     """
@@ -39,9 +36,6 @@ class BookFilter(FilterSet):
             'publication_year': ['exact', 'gte', 'lte'],
         }
 
-# =============================================================================
-# ENHANCED BOOK VIEWS WITH FILTERING, SEARCHING, AND ORDERING
-# =============================================================================
 
 class BookListView(generics.ListAPIView):
     """
@@ -65,29 +59,33 @@ class BookListView(generics.ListAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     
     # =========================================================================
-    # FILTERING CONFIGURATION
+    # FILTER BACKENDS CONFIGURATION - ALL THREE FILTERS EXPLICITLY CONFIGURED
     # =========================================================================
     filter_backends = [
-        rest_framework.DjangoFilterBackend,  # Use the correct import path
-        SearchFilter, 
-        OrderingFilter
+        rest_framework.DjangoFilterBackend,  # For Django Filter integration
+        SearchFilter,                        # For search functionality
+        OrderingFilter,                      # For ordering functionality
     ]
     
-    # Django Filter configuration
+    # =========================================================================
+    # DJANGO FILTER CONFIGURATION
+    # =========================================================================
     filterset_class = BookFilter
     
     # =========================================================================
-    # SEARCH CONFIGURATION
+    # SEARCH FILTER CONFIGURATION
+    # Search functionality on Book model fields: title and author
     # =========================================================================
     search_fields = [
-        'title',           # Search in book titles
-        'author__name',    # Search in author names
+        'title',           # Search in book titles (case-insensitive contains)
+        'author__name',    # Search in author names (case-insensitive contains)
         '=title',          # Exact match search for title
         '=author__name',   # Exact match search for author name
     ]
     
     # =========================================================================
-    # ORDERING CONFIGURATION
+    # ORDERING FILTER CONFIGURATION
+    # Allow users to order results by various fields
     # =========================================================================
     ordering_fields = [
         'title',              # Order by book title
@@ -107,7 +105,6 @@ class BookListView(generics.ListAPIView):
         queryset = super().get_queryset()
         
         # Example of additional custom filtering
-        # You can add more complex filtering logic here
         min_year = self.request.query_params.get('min_year')
         max_year = self.request.query_params.get('max_year')
         
@@ -132,11 +129,10 @@ class BookListView(generics.ListAPIView):
                 'publication_year': 'Filter by exact publication year',
                 'publication_year_min': 'Filter by minimum publication year',
                 'publication_year_max': 'Filter by maximum publication year',
-                'min_year': 'Custom filter for minimum year',
-                'max_year': 'Custom filter for maximum year',
             },
             'searching_options': {
                 'search': 'Full-text search in title and author name fields',
+                'search_fields': self.search_fields,  # Explicitly show search fields
             },
             'ordering_options': {
                 'ordering': f'Order by: {", ".join(self.ordering_fields)}',
@@ -229,21 +225,30 @@ class BookDeleteView(generics.DestroyAPIView):
         }, status=status.HTTP_200_OK)
 
 
-# =============================================================================
-# ENHANCED AUTHOR VIEWS (Optional - for completeness)
-# =============================================================================
 
 class AuthorListView(generics.ListAPIView):
     """
-    ListView for retrieving all authors with basic filtering and searching.
+    ListView for retrieving all authors with search and ordering capabilities.
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    # Configure both SearchFilter and OrderingFilter
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['name', 'books__title']
-    ordering_fields = ['name', 'id']
-    ordering = ['name']
+    
+    # Search functionality on author name and book titles
+    search_fields = [
+        'name',           # Search in author names
+        'books__title',   # Search in book titles of this author
+    ]
+    
+    # Ordering configuration
+    ordering_fields = [
+        'name',    # Order by author name
+        'id',      # Order by primary key
+    ]
+    ordering = ['name']  # Default ordering by name
 
 
 class AuthorDetailView(generics.RetrieveAPIView):
