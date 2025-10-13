@@ -1,12 +1,14 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, filters  # Import filters from rest_framework
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django_filters import rest_framework
-from rest_framework.filters import SearchFilter, OrderingFilter  # Explicit imports for both filters
 from django_filters import FilterSet, CharFilter, NumberFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
+# =============================================================================
+# CUSTOM FILTER SETS FOR ADVANCED FILTERING
+# =============================================================================
 
 class BookFilter(FilterSet):
     """
@@ -36,6 +38,9 @@ class BookFilter(FilterSet):
             'publication_year': ['exact', 'gte', 'lte'],
         }
 
+# =============================================================================
+# ENHANCED BOOK VIEWS WITH FILTERING, SEARCHING, AND ORDERING
+# =============================================================================
 
 class BookListView(generics.ListAPIView):
     """
@@ -63,8 +68,8 @@ class BookListView(generics.ListAPIView):
     # =========================================================================
     filter_backends = [
         rest_framework.DjangoFilterBackend,  # For Django Filter integration
-        SearchFilter,                        # For search functionality
-        OrderingFilter,                      # For ordering functionality
+        filters.SearchFilter,                # For search functionality using filters.SearchFilter
+        filters.OrderingFilter,              # For ordering functionality using filters.OrderingFilter
     ]
     
     # =========================================================================
@@ -225,6 +230,9 @@ class BookDeleteView(generics.DestroyAPIView):
         }, status=status.HTTP_200_OK)
 
 
+# =============================================================================
+# AUTHOR VIEWS WITH SEARCH AND ORDERING (For completeness)
+# =============================================================================
 
 class AuthorListView(generics.ListAPIView):
     """
@@ -234,8 +242,8 @@ class AuthorListView(generics.ListAPIView):
     serializer_class = AuthorSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     
-    # Configure both SearchFilter and OrderingFilter
-    filter_backends = [SearchFilter, OrderingFilter]
+    # Configure both SearchFilter and OrderingFilter using filters module
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     
     # Search functionality on author name and book titles
     search_fields = [
