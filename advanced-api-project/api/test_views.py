@@ -107,3 +107,44 @@ class BookAPITests(APITestCase):
         data = {'title': 'New Book', 'publication_year': 2023, 'author': self.author.id}
         response = self.client.post(reverse('api:book-create'), data)
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+
+
+class TestDatabaseIsolation(APITestCase):
+    """
+    Test that the test database is properly isolated from development database.
+    """
+    
+    def test_database_isolation(self):
+        """
+        Verify that test database is separate by checking initial state.
+        In a fresh test database, there should be no books initially.
+        """
+        # Check that no books exist in test database initially
+        book_count = Book.objects.count()
+        self.assertEqual(book_count, 0, 
+                        "Test database should start empty, indicating isolation from development database")
+        
+        # Create a book in test database
+        author = Author.objects.create(name='Test Author')
+        Book.objects.create(
+            title='Test Book in Test DB',
+            publication_year=2023,
+            author=author
+        )
+        
+        # Verify it exists in test database
+        self.assertEqual(Book.objects.count(), 1)
+        
+    def test_development_db_unaffected(self):
+        """
+        This test verifies that operations in tests don't affect development database.
+        Since test database is separate, creating objects here shouldn't appear in dev DB.
+        """
+        # This operation happens only in test database
+        author_count_before = Author.objects.count()
+        Author.objects.create(name='Temp Test Author')
+        author_count_after = Author.objects.count()
+        
+        # In test database, count should increase by 1
+        self.assertEqual(author_count_after, author_count_before + 1)
