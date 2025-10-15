@@ -16,7 +16,7 @@
         <button type="submit" class="btn btn-submit">
             {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
         </button>
-        <a href="{% if form.instance.pk %}{% url 'blog:post_detail' form.instance.pk %}{% else %}{% url 'blog:posts' %}{% endif %}" class="btn btn-cancel">
+        <a href="{% if form.instance.pk %}/blog/post/{{ form.instance.pk }}/{% else %}/blog/{% endif %}" class="btn btn-cancel">
             Cancel
         </a>
     </div>

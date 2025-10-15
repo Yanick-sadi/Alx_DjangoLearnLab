@@ -7,16 +7,16 @@
 
 {% if user.is_authenticated %}
 <div class="create-post">
-    <a href="{% url 'blog:post_create' %}" class="btn btn-create">Create New Post</a>
+    <a href="/blog/post/new/" class="btn btn-create">Create New Post</a>
 </div>
 {% endif %}
 
 {% for post in posts %}
     <article>
-        <h2><a href="{% url 'blog:post_detail' post.pk %}">{{ post.title }}</a></h2>
+        <h2><a href="/blog/post/{{ post.pk }}/">{{ post.title }}</a></h2>
         <p class="meta">By {{ post.author }} on {{ post.published_date|date:"F d, Y" }}</p>
         <p>{{ post.content|truncatewords:30 }}</p>
-        <a href="{% url 'blog:post_detail' post.pk %}" class="read-more">Read more →</a>
+        <a href="/blog/post/{{ post.pk }}/" class="read-more">Read more →</a>
     </article>
     <hr>
 {% empty %}

@@ -23,6 +23,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = 'blog/post_form.html'
     fields = ['title', 'content']
+    success_url = '/blog/'  # Use absolute URL
     
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -38,6 +39,9 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
     
+    def get_success_url(self):
+        return f'/blog/post/{self.object.pk}/'  # Redirect to post detail
+    
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
@@ -46,13 +50,13 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
-    success_url = reverse_lazy('blog:posts')
+    success_url = '/blog/'  # Use absolute URL
     
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
 
-# Function-based view for posts (keeping for compatibility)
+# Keep function-based view for compatibility
 def post_list(request):
     posts = Post.objects.all().order_by('-published_date')
     return render(request, 'blog/post_list.html', {'posts': posts})

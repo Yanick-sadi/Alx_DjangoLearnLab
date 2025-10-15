@@ -1,9 +1,47 @@
-{% extends "blog/base.html" %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Django Blog</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/blog/">Blog Posts</a></li>
+                <li><a href="/blog/login/">Login</a></li>
+                <li><a href="/blog/register/">Register</a></li>
+            </ul>
+        </nav>
+    </header>
 
-{% block title %}Home - Django Blog{% endblock %}
+    <div class="content">
+        <h1>Welcome to Django Blog</h1>
+        <p>This is the home page of our blog application.</p>
+        
+        <div class="features">
+            <div class="feature">
+                <h2>View Posts</h2>
+                <p>Read all our blog posts</p>
+                <a href="/blog/" class="btn">Browse Posts</a>
+            </div>
+            
+            <div class="feature">
+                <h2>Join Us</h2>
+                <p>Register to create your own posts</p>
+                <a href="/blog/register/" class="btn">Register</a>
+            </div>
+        </div>
+    </div>
 
-{% block content %}
-<h1>Welcome to Django Blog</h1>
-<p>This is the home page of our blog application.</p>
-{% endblock %}
+    <footer>
+        <p>&copy; 2024 Django Blog</p>
+    </footer>
+
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>
