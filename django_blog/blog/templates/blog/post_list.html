@@ -1,0 +1,18 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block title %}Blog Posts - Django Blog{% endblock %}
+
+{% block content %}
+<h1>Blog Posts</h1>
+{% for post in posts %}
+    <article>
+        <h2>{{ post.title }}</h2>
+        <p>By {{ post.author }} on {{ post.published_date }}</p>
+        <p>{{ post.content|truncatewords:30 }}</p>
+    </article>
+    <hr>
+{% empty %}
+    <p>No posts available.</p>
+{% endfor %}
+{% endblock %}
