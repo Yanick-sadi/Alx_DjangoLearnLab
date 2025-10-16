@@ -1,0 +1,17 @@
+{% extends "blog/base.html" %}
+
+{% block title %}Logout - Django Blog{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>You have been logged out</h1>
+    
+    <div class="logout-message">
+        <p>Thank you for visiting Django Blog!</p>
+        <div class="auth-links">
+            <a href="/blog/login/" class="btn btn-submit">Login Again</a>
+            <a href="/blog/" class="btn btn-cancel">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
