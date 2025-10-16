@@ -1,0 +1,65 @@
+{% extends "blog/base.html" %}
+
+{% block title %}Add Comment - Django Blog{% endblock %}
+
+{% block content %}
+<div class="comment-create-container">
+    <h1>Add Comment</h1>
+    
+    <div class="post-preview">
+        <h3>Commenting on: "{{ post.title }}"</h3>
+        <div class="post-excerpt">
+            {{ post.content|truncatewords:50|linebreaks }}
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" class="comment-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.content.id_for_label }}">Your Comment:</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div class="error-list">
+                    {% for error in form.content.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if form.content.help_text %}
+                <div class="help-text">{{ form.content.help_text }}</div>
+            {% endif %}
+            <div class="char-count">
+                <span id="char-count">0</span>/1000 characters
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-submit">Post Comment</button>
+            <a href="{% url 'post_detail' post.pk %}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentField = document.getElementById('{{ form.content.id_for_label }}');
+    const charCount = document.getElementById('char-count');
+    
+    function updateCharCount() {
+        charCount.textContent = contentField.value.length;
+    }
+    
+    contentField.addEventListener('input', updateCharCount);
+    updateCharCount(); // Initial count
+});
+</script>
+{% endblock %}

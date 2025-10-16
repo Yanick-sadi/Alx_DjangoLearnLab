@@ -129,30 +129,26 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# Comment Views - Updated to use new URL pattern
-@login_required
-def add_comment(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.post = post
-            comment.author = request.user
-            comment.save()
-            messages.success(request, 'Your comment has been added successfully!')
-            return redirect('post_detail', pk=post.pk)
-        else:
-            # If form is invalid, show errors on the post detail page
-            messages.error(request, 'Please correct the errors below.')
-            return render(request, 'blog/post_detail.html', {
-                'post': post,
-                'comments': post.comments.filter(active=True),
-                'comment_form': form
-            })
-    # If not POST, redirect to post detail
-    return redirect('post_detail', pk=post.pk)
-
+# Comment Views - Updated with CommentCreateView
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_create.html'  # Use dedicated template for creation
+    
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = post
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your comment has been added successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['post_id']})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        return context
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
     form_class = CommentForm
@@ -183,6 +179,30 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
+# Function-based comment view for inline form (keep for compatibility)
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Your comment has been added successfully!')
+            return redirect('post_detail', pk=post.pk)
+        else:
+            # If form is invalid, show errors on the post detail page
+            messages.error(request, 'Please correct the errors below.')
+            return render(request, 'blog/post_detail.html', {
+                'post': post,
+                'comments': post.comments.filter(active=True),
+                'comment_form': form
+            })
+    # If not POST, redirect to post detail
+    return redirect('post_detail', pk=post.pk)
 
 # Function-based view for posts (for compatibility)
 def post_list(request):

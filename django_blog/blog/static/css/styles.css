@@ -1053,3 +1053,41 @@ nav {
 .error:not(:last-child) {
     margin-bottom: 5px;
 }
+/* Comment Creation Options */
+.comment-creation-options {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.comment-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.inline-comment, .dedicated-comment {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.inline-comment h3, .dedicated-comment h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+}
+
+.dedicated-comment p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .comment-buttons {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}

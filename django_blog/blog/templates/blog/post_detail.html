@@ -34,25 +34,35 @@
     <section class="comments-section">
         <h2>Comments ({{ post.get_comments_count }})</h2>
         
-        <!-- Add Comment Form -->
+        <!-- Comment Creation Options -->
         {% if user.is_authenticated %}
-        <div class="add-comment">
-            <h3>Add a Comment</h3>
-            <form method="post" action="{% url 'add_comment' post.pk %}">
-                {% csrf_token %}
-                {{ comment_form.content }}
-                {% if comment_form.content.errors %}
-                    <div class="error-list">
-                        {% for error in comment_form.content.errors %}
-                            <span class="error">{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                {% if comment_form.content.help_text %}
-                    <div class="help-text">{{ comment_form.content.help_text }}</div>
-                {% endif %}
-                <button type="submit" class="btn btn-submit">Post Comment</button>
-            </form>
+        <div class="comment-creation-options">
+            <p>Add a comment:</p>
+            <div class="comment-buttons">
+                <!-- Inline form for quick commenting -->
+                <div class="inline-comment">
+                    <h3>Quick Comment</h3>
+                    <form method="post" action="{% url 'add_comment_function' post.pk %}">
+                        {% csrf_token %}
+                        {{ comment_form.content }}
+                        {% if comment_form.content.errors %}
+                            <div class="error-list">
+                                {% for error in comment_form.content.errors %}
+                                    <span class="error">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-submit">Post Comment</button>
+                    </form>
+                </div>
+                
+                <!-- Or link to dedicated comment creation page -->
+                <div class="dedicated-comment">
+                    <h3>Detailed Comment</h3>
+                    <p>Prefer a dedicated page for writing your comment?</p>
+                    <a href="{% url 'add_comment' post.pk %}" class="btn btn-create">Write Comment on Separate Page</a>
+                </div>
+            </div>
         </div>
         {% else %}
         <div class="login-prompt">
