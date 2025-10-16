@@ -9,49 +9,7 @@ from django.db.models import Q
 from .models import Post, Profile
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PostForm
 
-# Authentication Views
-def register(request):
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}! You can now log in.')
-            return redirect('login')
-    else:
-        form = UserRegisterForm()
-    return render(request, 'blog/register.html', {'form': form})
-
-class CustomLoginView(LoginView):
-    template_name = 'blog/login.html'
-    
-    def form_valid(self, form):
-        messages.success(self.request, f'Welcome back, {form.get_user().username}!')
-        return super().form_valid(form)
-
-class CustomLogoutView(LogoutView):
-    template_name = 'blog/logout.html'
-
-@login_required
-def profile(request):
-    if request.method == 'POST':
-        u_form = UserUpdateForm(request.POST, instance=request.user)
-        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
-        
-        if u_form.is_valid() and p_form.is_valid():
-            u_form.save()
-            p_form.save()
-            messages.success(request, 'Your profile has been updated!')
-            return redirect('profile')
-    else:
-        u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm(instance=request.user.profile)
-    
-    context = {
-        'u_form': u_form,
-        'p_form': p_form
-    }
-    return render(request, 'blog/profile.html', context)
+# Authentication Views (keep existing)
 
 # Blog Post CRUD Views
 class PostListView(ListView):
@@ -86,14 +44,12 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
+    success_url = reverse_lazy('post_list')  # Redirect to post list after creation
     
     def form_valid(self, form):
         form.instance.author = self.request.user
         messages.success(self.request, 'Your post has been created successfully!')
         return super().form_valid(form)
-    
-    def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post

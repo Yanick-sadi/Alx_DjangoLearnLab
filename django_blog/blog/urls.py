@@ -7,12 +7,12 @@ from .views import (
 )
 
 urlpatterns = [
-    # Blog Post CRUD URLs
+    # Blog Post CRUD URLs - Using the exact required patterns
     path('', PostListView.as_view(), name='post_list'),
-    path('posts/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
-    path('posts/new/', PostCreateView.as_view(), name='post_create'),
-    path('posts/<int:pk>/edit/', PostUpdateView.as_view(), name='post_update'),
-    path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+    path('post/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
+    path('post/new/', PostCreateView.as_view(), name='post_create'),  # Changed from 'posts/new/'
+    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),  # Changed from 'posts/<int:pk>/edit/'
+    path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),  # Changed from 'posts/<int:pk>/delete/'
     
     # Authentication URLs
     path('register/', register, name='register'),
