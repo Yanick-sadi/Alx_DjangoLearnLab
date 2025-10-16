@@ -1091,3 +1091,25 @@ nav {
         gap: 15px;
     }
 }
+/* Comment Creation Styles */
+.comment-creation {
+    margin-bottom: 30px;
+}
+
+.create-comment-link {
+    text-align: center;
+}
+
+.create-comment-link .btn-create {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+.create-comment-link .btn-create:hover {
+    background-color: #218838;
+}

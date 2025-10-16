@@ -16,6 +16,10 @@
 
     <div class="comment-preview">
         <h3>Original Comment on "{{ object.post.title }}"</h3>
+        <div class="comment-meta">
+            <span>By {{ object.author.username }}</span>
+            <span>Posted on {{ object.created_at|date:"F d, Y - g:i A" }}</span>
+        </div>
         <div class="original-comment">
             {{ object.content|linebreaks }}
         </div>

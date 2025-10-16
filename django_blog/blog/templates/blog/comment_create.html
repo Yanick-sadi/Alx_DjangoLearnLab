@@ -8,6 +8,10 @@
     
     <div class="post-preview">
         <h3>Commenting on: "{{ post.title }}"</h3>
+        <div class="post-meta">
+            <span>By {{ post.author.username }}</span>
+            <span>Published on {{ post.published_date|date:"F d, Y" }}</span>
+        </div>
         <div class="post-excerpt">
             {{ post.content|truncatewords:50|linebreaks }}
         </div>
