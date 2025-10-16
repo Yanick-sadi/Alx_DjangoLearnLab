@@ -16,8 +16,28 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'pk': self.pk})
     
+    def get_comments_count(self):
+        return self.comments.count()
+    
     class Meta:
         ordering = ['-published_date']
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f'Comment by {self.author.username} on {self.post.title}'
+    
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.post.pk})
+    
+    class Meta:
+        ordering = ['created_at']
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
