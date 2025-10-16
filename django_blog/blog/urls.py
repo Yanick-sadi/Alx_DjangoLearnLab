@@ -3,16 +3,22 @@ from django.views.generic import TemplateView
 from .views import (
     PostListView, PostDetailView, PostCreateView, 
     PostUpdateView, PostDeleteView, register, 
-    CustomLoginView, CustomLogoutView, profile
+    CustomLoginView, CustomLogoutView, profile,
+    add_comment, CommentUpdateView, CommentDeleteView
 )
 
 urlpatterns = [
-    # Blog Post CRUD URLs - Using the exact required patterns
+    # Blog Post CRUD URLs
     path('', PostListView.as_view(), name='post_list'),
     path('post/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
-    path('post/new/', PostCreateView.as_view(), name='post_create'),  # Changed from 'posts/new/'
-    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),  # Changed from 'posts/<int:pk>/edit/'
-    path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),  # Changed from 'posts/<int:pk>/delete/'
+    path('post/new/', PostCreateView.as_view(), name='post_create'),
+    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
+    path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+    
+    # Comment URLs
+    path('post/<int:pk>/comment/', add_comment, name='add_comment'),
+    path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_update'),
+    path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
     
     # Authentication URLs
     path('register/', register, name='register'),
