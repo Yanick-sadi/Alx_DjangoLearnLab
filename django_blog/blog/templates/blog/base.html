@@ -10,16 +10,23 @@
 <body>
     <header>
         <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/blog/">Blog Posts</a></li>
+            <div class="nav-brand">
+                <a href="/">Django Blog</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'post_list' %}">All Posts</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="/blog/profile/">Profile ({{ user.username }})</a></li>
-                    <li><a href="/blog/post/new/">Create Post</a></li>
-                    <li><a href="/blog/logout/">Logout</a></li>
+                    <li><a href="{% url 'post_create' %}">Create Post</a></li>
+                    <li class="user-menu">
+                        <a href="{% url 'profile' %}">{{ user.username }}</a>
+                        <ul class="dropdown">
+                            <li><a href="{% url 'profile' %}">Profile</a></li>
+                            <li><a href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </li>
                 {% else %}
-                    <li><a href="/blog/login/">Login</a></li>
-                    <li><a href="/blog/register/">Register</a></li>
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -32,7 +39,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 Django Blog</p>
+        <p>&copy; 2024 Django Blog - A Complete Django CRUD Application</p>
     </footer>
 
     <script src="{% static 'js/scripts.js' %}"></script>

@@ -3,44 +3,91 @@
 {% block title %}Blog Posts - Django Blog{% endblock %}
 
 {% block content %}
-<h1>Blog Posts</h1>
+<div class="posts-header">
+    <h1>Blog Posts</h1>
+    
+    <!-- Search Form -->
+    <div class="search-form">
+        <form method="get" action="{% url 'post_list' %}">
+            <input type="text" name="search" placeholder="Search posts..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-search">Search</button>
+            {% if search_query %}
+                <a href="{% url 'post_list' %}" class="btn btn-cancel">Clear</a>
+            {% endif %}
+        </form>
+    </div>
 
-{% if user.is_authenticated %}
-<div class="create-post">
-    <a href="/blog/post/new/" class="btn btn-create">Create New Post</a>
+    {% if user.is_authenticated %}
+    <div class="create-post-action">
+        <a href="{% url 'post_create' %}" class="btn btn-create">Create New Post</a>
+    </div>
+    {% endif %}
 </div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
 {% endif %}
 
 {% for post in posts %}
-    <article>
-        <h2><a href="/blog/post/{{ post.pk }}/">{{ post.title }}</a></h2>
-        <p class="meta">By {{ post.author }} on {{ post.published_date|date:"F d, Y" }}</p>
-        <p>{{ post.content|truncatewords:30 }}</p>
-        <a href="/blog/post/{{ post.pk }}/" class="read-more">Read more →</a>
+    <article class="post-preview">
+        <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+        
+        <div class="post-meta">
+            <span class="author">By {{ post.author.username }}</span>
+            <span class="date">on {{ post.published_date|date:"F d, Y" }}</span>
+            {% if post.updated_date != post.published_date %}
+                <span class="updated">(updated {{ post.updated_date|date:"F d, Y" }})</span>
+            {% endif %}
+        </div>
+        
+        <div class="post-content">
+            {{ post.content|truncatewords:50|linebreaks }}
+        </div>
+        
+        <div class="post-actions">
+            <a href="{% url 'post_detail' post.pk %}" class="read-more">Read more →</a>
+            {% if user == post.author %}
+                <span class="author-actions">
+                    <a href="{% url 'post_update' post.pk %}" class="btn-edit">Edit</a>
+                    <a href="{% url 'post_delete' post.pk %}" class="btn-delete">Delete</a>
+                </span>
+            {% endif %}
+        </div>
     </article>
-    <hr>
+    
+    {% if not forloop.last %}<hr>{% endif %}
 {% empty %}
-    <p>No posts available.</p>
+    <div class="no-posts">
+        <h3>No posts found</h3>
+        <p>{% if search_query %}No posts match your search criteria.{% else %}No posts have been published yet.{% endif %}</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post_create' %}" class="btn btn-create">Create the first post</a>
+        {% endif %}
+    </div>
 {% endfor %}
 
 {% if is_paginated %}
 <div class="pagination">
     {% if page_obj.has_previous %}
-        <a href="?page=1">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Previous</a>
     {% endif %}
     
     {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
-            <span class="current">{{ num }}</span>
+            <span class="current-page">{{ num }}</span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}">{{ num }}</a>
+            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">{{ num }}</a>
         {% endif %}
     {% endfor %}
     
     {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">Next</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Last</a>
     {% endif %}
 </div>
 {% endif %}

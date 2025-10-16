@@ -3,22 +3,39 @@
 {% block title %}{{ post.title }} - Django Blog{% endblock %}
 
 {% block content %}
-<article>
-    <h1>{{ post.title }}</h1>
-    <p class="meta">By {{ post.author }} on {{ post.published_date|date:"F d, Y" }}</p>
-    <div class="content">
+<article class="post-detail">
+    <header class="post-header">
+        <h1>{{ post.title }}</h1>
+        
+        <div class="post-meta">
+            <div class="author-info">
+                <span class="author">By {{ post.author.username }}</span>
+                <span class="date">Published on {{ post.published_date|date:"F d, Y" }}</span>
+                {% if post.updated_date != post.published_date %}
+                    <span class="updated">Last updated on {{ post.updated_date|date:"F d, Y" }}</span>
+                {% endif %}
+            </div>
+            
+            {% if user == post.author %}
+            <div class="post-actions">
+                <a href="{% url 'post_update' post.pk %}" class="btn btn-edit">Edit Post</a>
+                <a href="{% url 'post_delete' post.pk %}" class="btn btn-delete">Delete Post</a>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="post-content">
         {{ post.content|linebreaks }}
     </div>
-    
-    {% if user == post.author %}
-    <div class="post-actions">
-        <a href="/blog/post/{{ post.pk }}/update/" class="btn btn-edit">Edit</a>
-        <a href="/blog/post/{{ post.pk }}/delete/" class="btn btn-delete">Delete</a>
-    </div>
-    {% endif %}
-</article>
 
-<div class="navigation">
-    <a href="/blog/">← Back to all posts</a>
-</div>
+    <footer class="post-footer">
+        <div class="navigation">
+            <a href="{% url 'post_list' %}" class="btn btn-back">← Back to all posts</a>
+            {% if user.is_authenticated and user != post.author %}
+                <a href="{% url 'post_create' %}" class="btn btn-create">Create your own post</a>
+            {% endif %}
+        </div>
+    </footer>
+</article>
 {% endblock %}

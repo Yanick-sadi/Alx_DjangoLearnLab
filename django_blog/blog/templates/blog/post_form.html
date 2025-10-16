@@ -1,24 +1,74 @@
 {% extends "blog/base.html" %}
 
 {% block title %}
-    {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %} - Django Blog
+    {% if form.instance.pk %}Edit Post - {{ form.instance.title }}{% else %}Create New Post{% endif %} - Django Blog
 {% endblock %}
 
 {% block content %}
-<h1>{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h1>
+<div class="post-form-container">
+    <h1>{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        {{ form.as_p }}
-    </div>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-submit">
-            {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
-        </button>
-        <a href="{% if form.instance.pk %}/blog/post/{{ form.instance.pk }}/{% else %}/blog/{% endif %}" class="btn btn-cancel">
-            Cancel
-        </a>
-    </div>
-</form>
+    <form method="post" class="post-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">Title:</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+                <div class="error-list">
+                    {% for error in form.title.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.content.id_for_label }}">Content:</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div class="error-list">
+                    {% for error in form.content.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="char-count">
+                <span id="char-count">0</span> characters
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-submit">
+                {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
+            </button>
+            <a href="{% if form.instance.pk %}{% url 'post_detail' form.instance.pk %}{% else %}{% url 'post_list' %}{% endif %}" 
+               class="btn btn-cancel">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentField = document.getElementById('{{ form.content.id_for_label }}');
+    const charCount = document.getElementById('char-count');
+    
+    function updateCharCount() {
+        charCount.textContent = contentField.value.length;
+    }
+    
+    contentField.addEventListener('input', updateCharCount);
+    updateCharCount(); // Initial count
+});
+</script>
 {% endblock %}
