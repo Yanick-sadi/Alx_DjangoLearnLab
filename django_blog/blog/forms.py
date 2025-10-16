@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 from .models import Profile, Post, Comment
 
 class UserRegisterForm(UserCreationForm):
@@ -63,7 +64,7 @@ class CommentForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Write your comment here...',
+                'placeholder': 'Write your comment here... (Minimum 10 characters, maximum 1000)',
                 'rows': 4,
                 'maxlength': '1000'
             }),
@@ -71,11 +72,52 @@ class CommentForm(forms.ModelForm):
         labels = {
             'content': 'Your Comment'
         }
+        help_texts = {
+            'content': 'Comments must be between 10 and 1000 characters.'
+        }
     
     def clean_content(self):
         content = self.cleaned_data.get('content')
-        if len(content.strip()) < 10:
-            raise forms.ValidationError("Comment must be at least 10 characters long.")
+        
+        # Check if content is provided
+        if not content:
+            raise ValidationError("Comment content is required.")
+        
+        # Strip whitespace and check minimum length
+        content_stripped = content.strip()
+        if len(content_stripped) < 10:
+            raise ValidationError("Comment must be at least 10 characters long (excluding whitespace).")
+        
+        # Check maximum length
         if len(content) > 1000:
-            raise forms.ValidationError("Comment cannot exceed 1000 characters.")
+            raise ValidationError("Comment cannot exceed 1000 characters.")
+        
+        # Check for meaningful content (not just repeated characters)
+        if self._is_repeated_characters(content_stripped):
+            raise ValidationError("Comment must contain meaningful content.")
+        
+        # Check for excessive whitespace
+        if self._has_excessive_whitespace(content):
+            raise ValidationError("Comment contains excessive whitespace.")
+        
         return content
+    
+    def _is_repeated_characters(self, text):
+        """Check if text consists of mostly repeated characters"""
+        if len(text) < 3:
+            return False
+        # If more than 80% of characters are the same, consider it spam
+        from collections import Counter
+        char_counts = Counter(text)
+        most_common_count = char_counts.most_common(1)[0][1]
+        return most_common_count / len(text) > 0.8
+    
+    def _has_excessive_whitespace(self, text):
+        """Check for excessive consecutive whitespace"""
+        import re
+        # Check for more than 3 consecutive spaces or newlines
+        if re.search(r' {4,}', text):  # 4 or more spaces
+            return True
+        if re.search(r'\n{4,}', text):  # 4 or more newlines
+            return True
+        return False

@@ -836,7 +836,9 @@ nav {
 
 /* Comments List */
 .comments-list {
-    space-y: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; 
 }
 
 .comment {
@@ -1022,4 +1024,32 @@ nav {
     .comment {
         padding: 15px;
     }
+}
+/* Help Text Styles */
+.help-text {
+    color: #6c757d;
+    font-size: 14px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+/* Enhanced Error Styles */
+.error-list {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.error {
+    color: #721c24;
+    display: block;
+    font-size: 14px;
+}
+
+.error:not(:last-child) {
+    margin-bottom: 5px;
 }

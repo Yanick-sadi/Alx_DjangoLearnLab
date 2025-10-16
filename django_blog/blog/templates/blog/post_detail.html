@@ -48,6 +48,9 @@
                         {% endfor %}
                     </div>
                 {% endif %}
+                {% if comment_form.content.help_text %}
+                    <div class="help-text">{{ comment_form.content.help_text }}</div>
+                {% endif %}
                 <button type="submit" class="btn btn-submit">Post Comment</button>
             </form>
         </div>

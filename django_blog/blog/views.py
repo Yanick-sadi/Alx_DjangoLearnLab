@@ -129,10 +129,10 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# Comment Views
+# Comment Views - Updated to use new URL pattern
 @login_required
-def add_comment(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -142,6 +142,15 @@ def add_comment(request, pk):
             comment.save()
             messages.success(request, 'Your comment has been added successfully!')
             return redirect('post_detail', pk=post.pk)
+        else:
+            # If form is invalid, show errors on the post detail page
+            messages.error(request, 'Please correct the errors below.')
+            return render(request, 'blog/post_detail.html', {
+                'post': post,
+                'comments': post.comments.filter(active=True),
+                'comment_form': form
+            })
+    # If not POST, redirect to post detail
     return redirect('post_detail', pk=post.pk)
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
