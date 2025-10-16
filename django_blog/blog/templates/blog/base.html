@@ -13,8 +13,14 @@
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/blog/">Blog Posts</a></li>
-                <li><a href="/blog/login/">Login</a></li>
-                <li><a href="/blog/register/">Register</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="/blog/profile/">Profile ({{ user.username }})</a></li>
+                    <li><a href="/blog/post/new/">Create Post</a></li>
+                    <li><a href="/blog/logout/">Logout</a></li>
+                {% else %}
+                    <li><a href="/blog/login/">Login</a></li>
+                    <li><a href="/blog/register/">Register</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
