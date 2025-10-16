@@ -129,25 +129,25 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# Comment Views
+# Comment Views - Updated to use 'pk' parameter
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_create.html'
     
     def form_valid(self, form):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])  # Changed from 'post_id' to 'pk'
         form.instance.post = post
         form.instance.author = self.request.user
         messages.success(self.request, 'Your comment has been added successfully!')
         return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['post_id']})
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})  # Changed from 'post_id' to 'pk'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])  # Changed from 'post_id' to 'pk'
         return context
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
