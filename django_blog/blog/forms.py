@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
-from .models import Profile, Post, Comment
+from django.utils.text import slugify
+from .models import Profile, Post, Comment, Tag
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -30,6 +31,15 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ['bio', 'image']
 
 class PostForm(forms.ModelForm):
+    tags_input = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter tags separated by commas (e.g., django, python, web-development)'
+        }),
+        help_text="Separate tags with commas. Maximum 10 tags allowed."
+    )
+    
     class Meta:
         model = Post
         fields = ['title', 'content']
@@ -45,6 +55,12 @@ class PostForm(forms.ModelForm):
             }),
         }
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Pre-fill tags for existing posts
+            self.fields['tags_input'].initial = ', '.join([tag.name for tag in self.instance.tags.all()])
+    
     def clean_title(self):
         title = self.cleaned_data.get('title')
         if len(title) < 5:
@@ -56,6 +72,39 @@ class PostForm(forms.ModelForm):
         if len(content) < 50:
             raise forms.ValidationError("Content must be at least 50 characters long.")
         return content
+    
+    def clean_tags_input(self):
+        tags_input = self.cleaned_data.get('tags_input')
+        if tags_input:
+            tag_names = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
+            if len(tag_names) > 10:
+                raise forms.ValidationError("You can add maximum 10 tags.")
+            # Check for excessively long tags
+            for tag_name in tag_names:
+                if len(tag_name) > 50:
+                    raise forms.ValidationError(f"Tag '{tag_name}' is too long. Maximum 50 characters per tag.")
+        return tags_input
+    
+    def save(self, commit=True):
+        post = super().save(commit=False)
+        if commit:
+            post.save()
+            
+            # Handle tags
+            if self.cleaned_data['tags_input']:
+                tag_names = [tag.strip() for tag in self.cleaned_data['tags_input'].split(',') if tag.strip()]
+                tags = []
+                for tag_name in tag_names:
+                    tag, created = Tag.objects.get_or_create(
+                        name=tag_name,
+                        defaults={'slug': slugify(tag_name)}
+                    )
+                    tags.append(tag)
+                post.tags.set(tags)
+            else:
+                post.tags.clear()
+                
+        return post
 
 class CommentForm(forms.ModelForm):
     class Meta:

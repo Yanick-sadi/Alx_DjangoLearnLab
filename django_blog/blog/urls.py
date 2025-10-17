@@ -4,7 +4,8 @@ from .views import (
     PostListView, PostDetailView, PostCreateView, 
     PostUpdateView, PostDeleteView, register, 
     CustomLoginView, CustomLogoutView, profile,
-    CommentCreateView, CommentUpdateView, CommentDeleteView
+    CommentCreateView, CommentUpdateView, CommentDeleteView,
+    posts_by_tag, search_posts
 )
 
 urlpatterns = [
@@ -15,13 +16,14 @@ urlpatterns = [
     path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
     
-    # Comment URLs - EXACT patterns as required:
-    # post/<int:pk>/comments/new/ for creating
-    # comment/<int:pk>/update/ for updating  
-    # comment/<int:pk>/delete/ for deleting
+    # Comment URLs
     path('post/<int:pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_update'),
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
+    
+    # Tag and Search URLs
+    path('tags/<slug:tag_slug>/', posts_by_tag, name='posts_by_tag'),
+    path('search/', search_posts, name='search_posts'),
     
     # Authentication URLs
     path('register/', register, name='register'),

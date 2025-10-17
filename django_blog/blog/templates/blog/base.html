@@ -13,6 +13,12 @@
             <div class="nav-brand">
                 <a href="/">Django Blog</a>
             </div>
+            <div class="nav-search">
+                <form method="get" action="{% url 'search_posts' %}" class="nav-search-form">
+                    <input type="text" name="q" placeholder="Search posts..." value="{{ request.GET.q }}">
+                    <button type="submit" class="btn-search-small">🔍</button>
+                </form>
+            </div>
             <ul class="nav-links">
                 <li><a href="{% url 'post_list' %}">All Posts</a></li>
                 {% if user.is_authenticated %}
@@ -39,7 +45,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 Django Blog - A Complete Django CRUD Application</p>
+        <p>&copy; 2024 Django Blog - A Complete Django Blog Application</p>
     </footer>
 
     <script src="{% static 'js/scripts.js' %}"></script>

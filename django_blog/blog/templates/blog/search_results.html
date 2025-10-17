@@ -1,0 +1,68 @@
+{% extends "blog/base.html" %}
+
+{% block title %}Search Results{% if query %} for "{{ query }}"{% endif %} - Django Blog{% endblock %}
+
+{% block content %}
+<div class="search-results-header">
+    <h1>Search Results{% if query %} for "{{ query }}"{% endif %}</h1>
+    
+    {% if query %}
+    <div class="search-info">
+        <p>Found {{ results_count }} result{{ results_count|pluralize }}</p>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="search-form">
+        <form method="get" action="{% url 'search_posts' %}">
+            <input type="text" name="q" placeholder="Search posts..." value="{{ query }}">
+            <button type="submit" class="btn btn-search">Search</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% if posts %}
+    {% for post in posts %}
+    <article class="post-preview">
+        <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+        
+        <div class="post-meta">
+            <span class="author">By {{ post.author.username }}</span>
+            <span class="date">on {{ post.published_date|date:"F d, Y" }}</span>
+        </div>
+        
+        <div class="post-content">
+            {{ post.content|truncatewords:50|linebreaks }}
+        </div>
+        
+        <div class="post-tags">
+            {% for tag in post.tags.all %}
+                <a href="{% url 'posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        
+        <div class="post-actions">
+            <a href="{% url 'post_detail' post.pk %}" class="read-more">Read more →</a>
+        </div>
+    </article>
+    
+    {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+{% else %}
+    {% if query %}
+    <div class="no-results">
+        <h3>No results found for "{{ query }}"</h3>
+        <p>Try different keywords or browse <a href="{% url 'post_list' %}">all posts</a>.</p>
+    </div>
+    {% else %}
+    <div class="search-prompt">
+        <h3>Search Blog Posts</h3>
+        <p>Use the search form above to find posts by title, content, author, or tags.</p>
+    </div>
+    {% endif %}
+{% endif %}
+
+<div class="navigation">
+    <a href="{% url 'post_list' %}" class="btn btn-back">← Back to all posts</a>
+</div>
+{% endblock %}

@@ -24,11 +24,36 @@
             </div>
             {% endif %}
         </div>
+        
+        <!-- Tags Display -->
+        {% if post.tags.all %}
+        <div class="post-tags">
+            <strong>Tags:</strong>
+            {% for tag in post.tags.all %}
+                <a href="{% url 'posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </header>
 
     <div class="post-content">
         {{ post.content|linebreaks }}
     </div>
+
+    <!-- Related Posts -->
+    {% if related_posts %}
+    <section class="related-posts">
+        <h3>Related Posts</h3>
+        <div class="related-posts-list">
+            {% for related_post in related_posts %}
+            <div class="related-post">
+                <a href="{% url 'post_detail' related_post.pk %}">{{ related_post.title }}</a>
+                <span class="related-date">{{ related_post.published_date|date:"M d, Y" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     <!-- Comments Section -->
     <section class="comments-section">

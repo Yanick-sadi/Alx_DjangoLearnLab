@@ -6,7 +6,8 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
-from .models import Post, Profile, Comment
+from django.db import models  # Add this import for Count
+from .models import Post, Profile, Comment, Tag
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PostForm, CommentForm
 
 # Authentication Views (keep existing)
@@ -53,7 +54,7 @@ def profile(request):
     }
     return render(request, 'blog/profile.html', context)
 
-# Blog Post CRUD Views (keep existing)
+# Blog Post CRUD Views with Search and Tagging
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
@@ -64,17 +65,30 @@ class PostListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         search_query = self.request.GET.get('search')
+        tag_slug = self.request.GET.get('tag')
+        
         if search_query:
             queryset = queryset.filter(
                 Q(title__icontains=search_query) |
                 Q(content__icontains=search_query) |
-                Q(author__username__icontains=search_query)
-            )
+                Q(author__username__icontains=search_query) |
+                Q(tags__name__icontains=search_query)
+            ).distinct()
+        
+        if tag_slug:
+            tag = get_object_or_404(Tag, slug=tag_slug)
+            queryset = queryset.filter(tags__in=[tag])
+        
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
+        context['tag_slug'] = self.request.GET.get('tag', '')
+        # Get popular tags (tags with most posts)
+        context['popular_tags'] = Tag.objects.annotate(
+            post_count=models.Count('posts')
+        ).order_by('-post_count')[:10]
         return context
 
 class PostDetailView(DetailView):
@@ -86,6 +100,10 @@ class PostDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['comments'] = self.object.comments.filter(active=True)
         context['comment_form'] = CommentForm()
+        # Get related posts (posts with same tags)
+        context['related_posts'] = Post.objects.filter(
+            tags__in=list(self.object.tags.all())
+        ).exclude(pk=self.object.pk).distinct()[:5]
         return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -129,25 +147,25 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# Comment Views - Updated to use 'pk' parameter
+# Comment Views
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_create.html'
     
     def form_valid(self, form):
-        post = get_object_or_404(Post, pk=self.kwargs['pk'])  # Changed from 'post_id' to 'pk'
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
         form.instance.post = post
         form.instance.author = self.request.user
         messages.success(self.request, 'Your comment has been added successfully!')
         return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})  # Changed from 'post_id' to 'pk'
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])  # Changed from 'post_id' to 'pk'
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])
         return context
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -180,6 +198,38 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
+# Tag and Search Views
+def posts_by_tag(request, tag_slug):
+    tag = get_object_or_404(Tag, slug=tag_slug)
+    posts = Post.objects.filter(tags__in=[tag]).order_by('-published_date')
+    
+    context = {
+        'tag': tag,
+        'posts': posts,
+        'popular_tags': Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:10],
+    }
+    return render(request, 'blog/posts_by_tag.html', context)
+
+def search_posts(request):
+    query = request.GET.get('q', '')
+    posts = Post.objects.all().order_by('-published_date')
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(author__username__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    context = {
+        'posts': posts,
+        'query': query,
+        'results_count': posts.count(),
+        'popular_tags': Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:10],
+    }
+    return render(request, 'blog/search_results.html', context)
 
 # Function-based view for posts (for compatibility)
 def post_list(request):

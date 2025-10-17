@@ -2,6 +2,24 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
+from django.utils.text import slugify  # Add this import
+
+# Custom Tag model
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['name']
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
@@ -9,6 +27,7 @@ class Post(models.Model):
     published_date = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     updated_date = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')  # Custom tags
     
     def __str__(self):
         return self.title

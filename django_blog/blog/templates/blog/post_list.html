@@ -6,16 +6,43 @@
 <div class="posts-header">
     <h1>Blog Posts</h1>
     
-    <!-- Search Form -->
+    <!-- Enhanced Search Form -->
     <div class="search-form">
         <form method="get" action="{% url 'post_list' %}">
-            <input type="text" name="search" placeholder="Search posts..." value="{{ search_query }}">
+            <input type="text" name="search" placeholder="Search posts by title, content, author, or tags..." value="{{ search_query }}">
             <button type="submit" class="btn btn-search">Search</button>
-            {% if search_query %}
+            {% if search_query or tag_slug %}
                 <a href="{% url 'post_list' %}" class="btn btn-cancel">Clear</a>
             {% endif %}
         </form>
     </div>
+
+    <!-- Active Filters -->
+    {% if search_query %}
+    <div class="active-filters">
+        <span class="filter-label">Search results for: "{{ search_query }}"</span>
+        <a href="{% url 'post_list' %}" class="remove-filter">×</a>
+    </div>
+    {% endif %}
+    
+    {% if tag_slug %}
+    <div class="active-filters">
+        <span class="filter-label">Filtered by tag: {{ tag_slug }}</span>
+        <a href="{% url 'post_list' %}" class="remove-filter">×</a>
+    </div>
+    {% endif %}
+
+    <!-- Popular Tags -->
+    {% if popular_tags %}
+    <div class="popular-tags">
+        <h3>Popular Tags</h3>
+        <div class="tags-cloud">
+            {% for tag in popular_tags %}
+                <a href="{% url 'posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     {% if user.is_authenticated %}
     <div class="create-post-action">
@@ -42,11 +69,21 @@
             {% if post.updated_date != post.published_date %}
                 <span class="updated">(updated {{ post.updated_date|date:"F d, Y" }})</span>
             {% endif %}
+            <span class="comments-count">{{ post.get_comments_count }} comment{{ post.get_comments_count|pluralize }}</span>
         </div>
         
         <div class="post-content">
             {{ post.content|truncatewords:50|linebreaks }}
         </div>
+        
+        <!-- Tags Display -->
+        {% if post.tags.all %}
+        <div class="post-tags">
+            {% for tag in post.tags.all %}
+                <a href="{% url 'posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
         
         <div class="post-actions">
             <a href="{% url 'post_detail' post.pk %}" class="read-more">Read more →</a>
@@ -63,7 +100,15 @@
 {% empty %}
     <div class="no-posts">
         <h3>No posts found</h3>
-        <p>{% if search_query %}No posts match your search criteria.{% else %}No posts have been published yet.{% endif %}</p>
+        <p>
+            {% if search_query %}
+                No posts match your search criteria "{{ search_query }}".
+            {% elif tag_slug %}
+                No posts found with the tag "{{ tag_slug }}".
+            {% else %}
+                No posts have been published yet.
+            {% endif %}
+        </p>
         {% if user.is_authenticated %}
             <a href="{% url 'post_create' %}" class="btn btn-create">Create the first post</a>
         {% endif %}
@@ -73,21 +118,21 @@
 {% if is_paginated %}
 <div class="pagination">
     {% if page_obj.has_previous %}
-        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Previous</a>
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}" class="page-link">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}" class="page-link">Previous</a>
     {% endif %}
     
     {% for num in page_obj.paginator.page_range %}
         {% if page_obj.number == num %}
             <span class="current-page">{{ num }}</span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">{{ num }}</a>
+            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}" class="page-link">{{ num }}</a>
         {% endif %}
     {% endfor %}
     
     {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Next</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Last</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}" class="page-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}" class="page-link">Last</a>
     {% endif %}
 </div>
 {% endif %}
