@@ -1392,3 +1392,52 @@ nav {
         order: 3;
     }
 }
+/* Tag Input Styles */
+.tag-input {
+    background: white !important;
+}
+
+/* Enhanced Tag Styles for Cloud */
+.tags-cloud .tag {
+    display: inline-block;
+    margin: 5px;
+    padding: 8px 15px;
+    background: #e9ecef;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.tags-cloud .tag:hover {
+    background: #007bff;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+
+/* Search Section Styles */
+.search-section {
+    margin-bottom: 30px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.advanced-search-form .form-control {
+    width: 100%;
+}
+
+/* Authors List */
+.authors-list {
+    display: grid;
+    gap: 10px;
+}

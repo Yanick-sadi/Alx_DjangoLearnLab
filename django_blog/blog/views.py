@@ -3,10 +3,11 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.models import User  # Add this import
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
-from django.db import models  # Add this import for Count
+from django.db import models
 from .models import Post, Profile, Comment, Tag
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PostForm, CommentForm
 
@@ -54,7 +55,7 @@ def profile(request):
     }
     return render(request, 'blog/profile.html', context)
 
-# Blog Post CRUD Views with Search and Tagging
+# Blog Post CRUD Views with Enhanced Search and Tagging
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
@@ -66,18 +67,29 @@ class PostListView(ListView):
         queryset = super().get_queryset()
         search_query = self.request.GET.get('search')
         tag_slug = self.request.GET.get('tag')
+        author_name = self.request.GET.get('author')
+        
+        # Build complex query using Q objects
+        query_filters = Q()
         
         if search_query:
-            queryset = queryset.filter(
+            # Search in title, content, author username, and tags
+            query_filters &= (
                 Q(title__icontains=search_query) |
                 Q(content__icontains=search_query) |
                 Q(author__username__icontains=search_query) |
                 Q(tags__name__icontains=search_query)
-            ).distinct()
+            )
         
         if tag_slug:
             tag = get_object_or_404(Tag, slug=tag_slug)
-            queryset = queryset.filter(tags__in=[tag])
+            query_filters &= Q(tags__in=[tag])
+        
+        if author_name:
+            query_filters &= Q(author__username__icontains=author_name)
+        
+        if query_filters:
+            queryset = queryset.filter(query_filters).distinct()
         
         return queryset
     
@@ -85,6 +97,7 @@ class PostListView(ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['tag_slug'] = self.request.GET.get('tag', '')
+        context['author_name'] = self.request.GET.get('author', '')
         # Get popular tags (tags with most posts)
         context['popular_tags'] = Tag.objects.annotate(
             post_count=models.Count('posts')
@@ -199,7 +212,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
 
-# Tag and Search Views
+# Enhanced Tag and Search Views
 def posts_by_tag(request, tag_slug):
     tag = get_object_or_404(Tag, slug=tag_slug)
     posts = Post.objects.filter(tags__in=[tag]).order_by('-published_date')
@@ -213,23 +226,57 @@ def posts_by_tag(request, tag_slug):
 
 def search_posts(request):
     query = request.GET.get('q', '')
+    tag_filter = request.GET.get('tag', '')
+    author_filter = request.GET.get('author', '')
+    
     posts = Post.objects.all().order_by('-published_date')
     
+    # Build complex query using Q objects
+    query_filters = Q()
+    
     if query:
-        posts = posts.filter(
+        query_filters &= (
             Q(title__icontains=query) |
             Q(content__icontains=query) |
             Q(author__username__icontains=query) |
             Q(tags__name__icontains=query)
-        ).distinct()
+        )
+    
+    if tag_filter:
+        tag = get_object_or_404(Tag, slug=tag_filter)
+        query_filters &= Q(tags__in=[tag])
+    
+    if author_filter:
+        query_filters &= Q(author__username__icontains=author_filter)
+    
+    if query_filters:
+        posts = posts.filter(query_filters).distinct()
     
     context = {
         'posts': posts,
         'query': query,
+        'tag_filter': tag_filter,
+        'author_filter': author_filter,
         'results_count': posts.count(),
         'popular_tags': Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:10],
+        'recent_authors': User.objects.filter(  # Fixed: Use imported User model
+            posts__isnull=False
+        ).distinct().order_by('-date_joined')[:5],
     }
     return render(request, 'blog/search_results.html', context)
+
+# Advanced search page
+def advanced_search(request):
+    popular_tags = Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:15]
+    recent_authors = User.objects.filter(  # Fixed: Use imported User model
+        posts__isnull=False
+    ).distinct().order_by('-date_joined')[:10]
+    
+    context = {
+        'popular_tags': popular_tags,
+        'recent_authors': recent_authors,
+    }
+    return render(request, 'blog/advanced_search.html', context)
 
 # Function-based view for posts (for compatibility)
 def post_list(request):

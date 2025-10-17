@@ -21,6 +21,7 @@
             </div>
             <ul class="nav-links">
                 <li><a href="{% url 'post_list' %}">All Posts</a></li>
+                <li><a href="{% url 'advanced_search' %}">Advanced Search</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'post_create' %}">Create Post</a></li>
                     <li class="user-menu">

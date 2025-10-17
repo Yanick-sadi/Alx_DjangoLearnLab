@@ -5,6 +5,16 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from .models import Profile, Post, Comment, Tag
 
+# Custom Tag Widget for better tag input
+class TagWidget(forms.TextInput):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({
+            'class': 'form-control tag-input',
+            'data-role': 'tagsinput',
+            'placeholder': 'Add tags separated by commas...'
+        })
+
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
     
@@ -33,10 +43,7 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     tags_input = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas (e.g., django, python, web-development)'
-        }),
+        widget=TagWidget(),  # Use the custom TagWidget
         help_text="Separate tags with commas. Maximum 10 tags allowed."
     )
     
