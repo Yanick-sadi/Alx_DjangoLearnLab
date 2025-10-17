@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
-from django.utils.text import slugify  # Add this import
+from django.utils.text import slugify  
 
 # Custom Tag model
 class Tag(models.Model):
