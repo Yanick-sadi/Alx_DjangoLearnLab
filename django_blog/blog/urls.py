@@ -5,7 +5,8 @@ from .views import (
     PostUpdateView, PostDeleteView, register, 
     CustomLoginView, CustomLogoutView, profile,
     CommentCreateView, CommentUpdateView, CommentDeleteView,
-    posts_by_tag, search_posts, advanced_search
+    posts_by_tag, search_posts, advanced_search,
+    PostByTagListView  # Add this import
 )
 
 urlpatterns = [
@@ -21,8 +22,8 @@ urlpatterns = [
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_update'),
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
     
-    # Tag and Search URLs - Complete configuration
-    path('tags/<slug:tag_slug>/', posts_by_tag, name='posts_by_tag'),
+    # Tag and Search URLs - Complete configuration with PostByTagListView
+    path('tags/<slug:tag_slug>/', PostByTagListView.as_view(), name='posts_by_tag'),  # Class-based view
     path('search/', search_posts, name='search_posts'),
     path('search/advanced/', advanced_search, name='advanced_search'),
     

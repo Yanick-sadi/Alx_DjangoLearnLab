@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth.models import User  # Add this import
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
@@ -99,6 +99,27 @@ class PostListView(ListView):
         context['tag_slug'] = self.request.GET.get('tag', '')
         context['author_name'] = self.request.GET.get('author', '')
         # Get popular tags (tags with most posts)
+        context['popular_tags'] = Tag.objects.annotate(
+            post_count=models.Count('posts')
+        ).order_by('-post_count')[:10]
+        return context
+
+# New Class-Based View for Posts by Tag
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 5
+    
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        self.tag = get_object_or_404(Tag, slug=tag_slug)
+        return Post.objects.filter(tags__in=[self.tag]).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
         context['popular_tags'] = Tag.objects.annotate(
             post_count=models.Count('posts')
         ).order_by('-post_count')[:10]
@@ -259,7 +280,7 @@ def search_posts(request):
         'author_filter': author_filter,
         'results_count': posts.count(),
         'popular_tags': Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:10],
-        'recent_authors': User.objects.filter(  # Fixed: Use imported User model
+        'recent_authors': User.objects.filter(
             posts__isnull=False
         ).distinct().order_by('-date_joined')[:5],
     }
@@ -268,7 +289,7 @@ def search_posts(request):
 # Advanced search page
 def advanced_search(request):
     popular_tags = Tag.objects.annotate(post_count=models.Count('posts')).order_by('-post_count')[:15]
-    recent_authors = User.objects.filter(  # Fixed: Use imported User model
+    recent_authors = User.objects.filter(
         posts__isnull=False
     ).distinct().order_by('-date_joined')[:10]
     
